@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from todo_api import app
+from todo_api.app import app
 
 
 @pytest.fixture()
