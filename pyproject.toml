@@ -12,6 +12,7 @@ fastapi = "^0.115.8"
 ruff = "^0.1.0"
 sqlalchemy = "^2.0.38"
 pydantic-settings = "^2.8.0"
+alembic = "^1.14.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -42,6 +43,7 @@ test = "pytest --cov=todo_api -vv"
 post_test = "coverage html"
 lint = "ruff check . && ruff check . --diff"
 format = "ruff check . --fix && ruff format ."
+create_migrations = "alembic revision --autogenerate -m 'create migration'"
 
 
 [toll.ruff]
