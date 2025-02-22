@@ -37,14 +37,14 @@ def test_update_user(client):
             'password': 'new_password',
             'username': 'test_user_updated',
             'email': 'new@updated.com',
-            'id': 1
+            'id': 1,
         },
     )
 
     assert response.json() == {
         'username': 'test_user_updated',
         'email': 'new@updated.com',
-        'id': 1
+        'id': 1,
     }
 
 
@@ -56,5 +56,5 @@ def test_delete_user(client):
     assert response.json() == {
         'username': 'test_user_updated',
         'email': 'new@updated.com',
-        'id': 1
+        'id': 1,
     }

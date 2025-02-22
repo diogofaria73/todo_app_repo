@@ -52,11 +52,13 @@ def update_user(user_id: int, user: UserSchema):
     return user_with_id
 
 
-@app.delete('/users/{user_id}/', status_code=HTTPStatus.OK,
-            response_model=UserSchemaPublic,
-            tags=['Users'])
+@app.delete(
+    '/users/{user_id}/',
+    status_code=HTTPStatus.OK,
+    response_model=UserSchemaPublic,
+    tags=['Users'],
+)
 def delete_user(user_id: int):
-
     user_with_id = database[user_id - 1]
     del database[user_id - 1]
 

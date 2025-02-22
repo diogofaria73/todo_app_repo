@@ -24,6 +24,8 @@ To install the Todo API, follow these steps:
     ```
 
 ## Usage
+Rename .env-example to .env
+
 To start the server, run:
 ```sh
 poetry run python -m todo_api
