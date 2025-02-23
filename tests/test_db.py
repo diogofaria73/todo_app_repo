@@ -4,7 +4,9 @@ from todo_api.repositories.models.database_models import User
 def test_create_user_db(session):
     # Create a new user
     user = User(
-        username='test_user', email='test_email@gmail.com', password='test_password'
+        username='test_user',  first_name='teste', last_name='teste',
+        email='test_email@gmail.com',
+        password='test_password'
     )
 
     # Add the user to the session

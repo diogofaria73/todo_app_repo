@@ -44,11 +44,12 @@ post_test = "coverage html"
 lint = "ruff check . && ruff check . --diff"
 format = "ruff check . --fix && ruff format ."
 create_migrations = "alembic revision --autogenerate -m 'create migration'"
+apply_migrations = "alembic upgrade head"
 
 
 [toll.ruff]
 line-length = 79
-extend-exclude = [ "migrations" ]
+extend-exclude = [ "todo_api/repositories/migrations", "./poetry.lock" ]
 
 
 [build-system]
