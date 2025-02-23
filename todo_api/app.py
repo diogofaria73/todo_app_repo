@@ -8,7 +8,7 @@ from todo_api.domains.users.schemas.UserSchema import (
     UserSchema,
     UserSchemaPublic,
 )
-from todo_api.repositories.database import get_session
+from todo_api.repositories.database import Session, get_session
 from todo_api.repositories.models.database_models import User
 
 app = FastAPI()
@@ -50,10 +50,67 @@ def create_user(user: UserSchema, session=Depends(get_session)):
 
 
 @app.get('/users', response_model=UserList, tags=['Users'])
-def read_users(limit: int = 5, session=Depends(get_session)):
-
-    users = session.scalars(
-        select(User).limit(limit)
-    )
+def read_users(limit: int = 10, skip: int = 0, session=Depends(get_session)):
+    users = session.scalars(select(User).limit(limit).offset(skip))
 
     return {'users': users}
+
+
+@app.get('/user/by_id/{user_id}', response_model=UserSchemaPublic, tags=['Users'])
+def read_user_by_id(user_id: int, session=Depends(get_session)):
+    user = session.scalar(select(User).where(User.id == user_id))
+
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='User not found.',
+        )
+
+    return user
+
+
+@app.put('/users/{user_id}', response_model=UserSchemaPublic, tags=['Users'])
+def update_user(
+    user_id: int, user: UserSchema, session: Session = Depends(get_session)
+):
+    db_user = session.scalar(select(User).where(User.id == user_id))
+
+    if not db_user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='User not found.',
+        )
+
+    db_user.username = user.username
+    db_user.email = user.email
+    db_user.first_name = user.first_name
+    db_user.last_name = user.last_name
+
+    if user.password:
+        db_user.password = user.password
+
+    db_user.password = db_user.password
+
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+    return db_user
+
+
+@app.delete('/users/{user_id}', response_model=UserSchemaPublic, tags=['Users'])
+def delete_user(
+    user_id: int, user: UserSchema, session: Session = Depends(get_session)
+):
+    db_user = session.scalar(select(User).where(User.id == user_id))
+
+    if not db_user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='User not found.',
+        )
+
+    session.delete(db_user)
+    session.commit()
+
+    return {'user': db_user}

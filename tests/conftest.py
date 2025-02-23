@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from todo_api.app import app
 from todo_api.repositories.database import get_session
-from todo_api.repositories.models.database_models import table_registry
+from todo_api.repositories.models.database_models import User, table_registry
 
 
 @pytest.fixture()
@@ -35,3 +35,20 @@ def session():
         yield session
 
     table_registry.metadata.drop_all(engine)
+
+
+@pytest.fixture()
+def user(session):
+    user = User(
+        username='test_user',
+        first_name='teste',
+        last_name='teste',
+        email='teste@teste.com',
+        password='test_password',
+    )
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
