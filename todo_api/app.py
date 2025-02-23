@@ -1,21 +1,17 @@
 from http import HTTPStatus
 
-from fastapi import FastAPI, HTTPException
-from sqlalchemy import create_engine, or_, select
-from sqlalchemy.orm import Session
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy import or_, select
 
 from todo_api.domains.users.schemas.UserSchema import (
-    UserDb,
     UserList,
     UserSchema,
     UserSchemaPublic,
 )
+from todo_api.repositories.database import get_session
 from todo_api.repositories.models.database_models import User
-from todo_api.settings import Settings
 
 app = FastAPI()
-
-database = []
 
 
 @app.post(
@@ -24,64 +20,40 @@ database = []
     response_model=UserSchemaPublic,
     tags=['Users'],
 )
-def create_user(user: UserSchema):
+def create_user(user: UserSchema, session=Depends(get_session)):
+    user_exists = session.scalar(
+        select(User).where(
+            or_(User.email == user.email, User.username == user.username)
+        )
+    )
 
-    service_db = create_engine(Settings().DATABASE_URL)
-
-    with Session(service_db) as session:
-        user_exists = session.scalar(
-            select(User)
-            .where(or_(User.username == user.username, User.email == user.email))
+    if user_exists:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='User with the same email or username already exists.',
         )
 
-        if user_exists:
-            raise HTTPException(detail='User already exists. Please user another username or email.',
-                                status_code=HTTPStatus.BAD_REQUEST)
+    user = User(
+        username=user.username,
+        email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        password=user.password,
+    )
 
-        user = User(username=user.username, first_name=user.first_name,
-                    last_name=user.last_name, email=user.email,
-                    password=user.password)
+    session.add(user)
+    session.commit()
 
-        session.add(user)
-        session.commit()
+    session.refresh(user)
 
-        session.refresh(user)
-
-        return user
-
-
-@app.get(
-    '/users/',
-    status_code=HTTPStatus.OK,
-    response_model=UserList,
-    tags=['Users'],
-)
-def read_users():
-    return {'users': database}
+    return user
 
 
-@app.put(
-    '/users/{user_id}/',
-    status_code=HTTPStatus.OK,
-    response_model=UserSchemaPublic,
-    tags=['Users'],
-)
-def update_user(user_id: int, user: UserSchema):
-    user_with_id = UserDb(**user.model_dump(), id=user_id)
+@app.get('/users', response_model=UserList, tags=['Users'])
+def read_users(limit: int = 5, session=Depends(get_session)):
 
-    database[user_id - 1] = user_with_id
+    users = session.scalars(
+        select(User).limit(limit)
+    )
 
-    return user_with_id
-
-
-@app.delete(
-    '/users/{user_id}/',
-    status_code=HTTPStatus.OK,
-    response_model=UserSchemaPublic,
-    tags=['Users'],
-)
-def delete_user(user_id: int):
-    user_with_id = database[user_id - 1]
-    del database[user_id - 1]
-
-    return user_with_id
+    return {'users': users}

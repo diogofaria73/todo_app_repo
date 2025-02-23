@@ -1,60 +1,35 @@
-from http import HTTPStatus
+from todo_api.repositories.models.database_models import User
 
 
-def test_create_user(client):
-    response = client.post(
-        '/users/',
-        json={
-            'username': 'test_user',
-            'email': 'teste@teste.com',
-            'password': 'test_password',
-        },
+def test_create_user_db(session):
+    # Create a new user
+    user = User(
+        username='test_user',
+        first_name='teste',
+        last_name='teste',
+        email='test_email@gmail.com',
+        password='test_password',
     )
 
-    assert response.status_code == HTTPStatus.CREATED
+    # Add the user to the session
+    session.add(user)
 
-    assert response.json() == {
-        'username': 'test_user',
-        'email': 'teste@teste.com',
-        'id': 1,
-    }
+    # Commit the transaction
+    session.commit()
 
+    # Query database to retry created register
+    user = session.query(User).filter_by(username='test_user').first()
 
-def test_read_user(client):
-    response = client.get('/users/')
-
-    assert response.status_code == HTTPStatus.OK
-
-    assert response.json() == {
-        'users': [{'username': 'test_user', 'email': 'teste@teste.com', 'id': 1}]
-    }
-
-
-def test_update_user(client):
-    response = client.put(
-        '/users/1',
-        json={
-            'password': 'new_password',
-            'username': 'test_user_updated',
-            'email': 'new@updated.com',
-            'id': 1,
-        },
-    )
-
-    assert response.json() == {
-        'username': 'test_user_updated',
-        'email': 'new@updated.com',
-        'id': 1,
-    }
+    # Assert the user was created correctly
+    assert user.id == 1
+    assert user.username == 'test_user'
+    assert user.first_name == 'teste'
+    assert user.last_name == 'teste'
+    assert user.email == 'test_email@gmail.com'
+    assert user.password == 'test_password'
 
 
-def test_delete_user(client):
-    response = client.delete('/users/1')
+def test_read_users_db(session):
+    # Create a new user
 
-    assert response.status_code == HTTPStatus.OK
-
-    assert response.json() == {
-        'username': 'test_user_updated',
-        'email': 'new@updated.com',
-        'id': 1,
-    }
+    session.scalar()
