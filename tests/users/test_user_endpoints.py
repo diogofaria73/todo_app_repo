@@ -64,9 +64,7 @@ def test_read_users_with_user(client, user):
     user_schema = UserSchemaPublic.model_validate(user).model_dump()
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'users': [user_schema]
-    }
+    assert response.json() == {'users': [user_schema]}
 
 
 def test_update_user(client, user):
